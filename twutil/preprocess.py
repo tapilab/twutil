@@ -13,7 +13,7 @@ class Tokenizer(object):
     """
     >>> t = Tokenizer()
     >>> t.tokenize(Tweet(json.loads(data.test_tweet)))
-    {'text': [u'if', u'only', u"bradley's", u'arm', u'was', u'longer', u'.', u'best', u'photo', u'ever', u'.', u'#oscars', u'THIS_IS_A_URL'], 'user.name': [u'ellen', u'degeneres']}
+    {'text': [u'if', u'only', u"bradley's", u'arm', u'was', u'longer', u'.', u'best', u'photo', u'ever', u'.', u'HASHTAG_oscars', u'THIS_IS_A_URL'], 'user.name': [u'ellen', u'degeneres']}
     """
     def __init__(self, fields=['text', 'user.name'], ngrams=1, lc=True, collapse_hashtags=False,
                  collapse_mentions=True, collapse_urls=True, limit_repeats=True, retain_punc_toks=True):
@@ -32,11 +32,13 @@ class Tokenizer(object):
         """
         >>> tk = Tokenizer(ngrams=1, lc=True, collapse_urls=True, collapse_mentions=True, collapse_hashtags=False, retain_punc_toks=True)
         >>> tk.do_tokenize('http://www.foo.com fast-forward hi there :) how?? U.S.A. @you whaaaaaaat? #awesome.')
-        ['THIS_IS_A_URL', 'fast-forward', 'hi', 'there', ':)', 'how', '??', 'u.s.a', '.', 'THIS_IS_A_MENTION', 'what', '?', '#awesome', '.']
+        ['THIS_IS_A_URL', 'fast-forward', 'hi', 'there', ':)', 'how', '??', 'u.s.a', '.', 'THIS_IS_A_MENTION', 'what', '?', 'HASHTAG_awesome', '.']
         """
         text = text.lower() if self.lc else text
         if self.collapse_hashtags:
             text = re.sub('#\S+', 'THIS_IS_A_HASHTAG', text)
+        else:
+            text = re.sub('#(\S+)', r'HASHTAG_\1', text)
         if self.collapse_mentions:
             text = re.sub('@\S+', 'THIS_IS_A_MENTION', text)
         if self.collapse_urls:
@@ -45,10 +47,11 @@ class Tokenizer(object):
             text = re.sub(r'(.)\1\1\1+', r'\1', text)
         toks = []
         for tok in text.split():
-            for subtok in re.split('(' + punc_re + '+)$', tok, maxsplit=1):
-                if subtok:
-                    if self.retain_punc_toks or re.search('\w', subtok):
-                        toks.append(subtok)
+            tok = re.sub(r'^(' + punc_re + '+)', r'\1 ', tok)
+            tok = re.sub(r'(' + punc_re + '+)$', r' \1', tok)
+            for subtok in tok.split():
+                if self.retain_punc_toks or re.search('\w', subtok):
+                    toks.append(subtok)
         return toks
 
     def tokenize(self, tw):
