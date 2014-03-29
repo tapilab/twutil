@@ -28,10 +28,7 @@ lint:
 	flake8 twutil tests
 
 test:
-	python setup.py test
-
-test-all:
-	tox
+	nosetests --with-doctest
 
 coverage:
 	coverage run --source twutil setup.py test
