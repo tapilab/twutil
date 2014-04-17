@@ -22,7 +22,7 @@ def tweets_for_user(screen_name, limit=1e10):
     p.start()
     p.join(900)
     if p.is_alive():
-        sys.stderr.write('no results after 15 minutes for', screen_name, '. Aborting.')
+        sys.stderr.write('no results after 15 minutes for %s. Aborting.' % screen_name)
         return None
     else:
         return qu.get()
