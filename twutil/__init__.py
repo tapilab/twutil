@@ -5,8 +5,9 @@ __author__ = 'Aron Culotta'
 __email__ = 'aronwc@gmail.com'
 __version__ = '0.1.0'
 
+
 from .data import Tweet
-from . import api
+from . import collect
 from . import preprocess
 
-__all__ = ['Tweet', 'api', 'preprocess']
+__all__ = ['Tweet', 'collect', 'preprocess']
