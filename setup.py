@@ -14,17 +14,17 @@ if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
 
-readme = open('README.md').read()
+readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='twutil',
-    version='0.1.1',
+    version='0.1.2',
     description='Utilities for manipulating tweets',
     long_description=readme + '\n\n' + history,
     author='Aron Culotta',
     author_email='aronwc@gmail.com',
-    url='https://github.com/aronwc/twutil',
+    url='https://github.com/tapilab/twutil',
     packages=[
         'twutil',
     ],

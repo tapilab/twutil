@@ -6,7 +6,7 @@ A set of utilities for handling Twitter data.
 
 `pip install twutil`
 
-Twitter API calls rely on the [Twitter](https://pypi.python.org/pypi/twitter) Python library.
+Twitter API calls rely on the [TwitterAPI](https://github.com/geduldig/TwitterAPI) Python library.
 
 To use OAuth, you'll need to set the following environmental variables:
 
