@@ -43,7 +43,7 @@ def tweets_for_user(screen_name, limit=1e10):
     p.join(900)
     if p.is_alive():
         sys.stderr.write('no results after 15 minutes for %s. Aborting.' % screen_name)
-        return None
+        return []
     else:
         return qu.get()
 
@@ -61,16 +61,17 @@ def _tweets_for_user(qu, screen_name, limit=1e10):
             if response.status_code != 200:  # something went wrong
                 sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % response.text)
                 time.sleep(300)
-            items = [t for t in response]
-            if len(items) == 0:
-                qu.put(tweets)
-                return
             else:
-                sys.stderr.write('fetched %d more tweets for %s\n' % (len(items), screen_name))
-                tweets.extend(items)
-                if len(tweets) >= limit:
-                    qu.put(tweets[:limit])
+                items = [t for t in response]
+                if len(items) == 0:
+                    qu.put(tweets)
                     return
+                else:
+                    sys.stderr.write('fetched %d more tweets for %s\n' % (len(items), screen_name))
+                    tweets.extend(items)
+                    if len(tweets) >= limit:
+                        qu.put(tweets[:limit])
+                        return
                 max_id = min(t['id'] for t in response) - 1
         except Exception as e:
             sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % e)
