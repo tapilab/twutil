@@ -2,6 +2,12 @@
 
 History
 -------
+
+0.1.4 (2014-05-02)
+++++++++++++++++++
+* Bug fixes
+* Fail more gracefully
+
 0.1.3 (2014-05-01)
 ++++++++++++++++++
 * Small doc changes
