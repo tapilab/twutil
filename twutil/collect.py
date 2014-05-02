@@ -58,7 +58,11 @@ def _tweets_for_user(qu, screen_name, limit=1e10):
                 response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200, 'max_id': max_id})
             else:
                 response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200})
-            if response.status_code != 200:  # something went wrong
+            if response.status_code == 34 or response.status_code == 404 or response.status_code == 401:
+                sys.stderr.write('Skipping bad user: %s\n' % response.text)
+                qu.put(tweets)
+                return
+            elif response.status_code != 200:  # something went wrong
                 sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % response.text)
                 time.sleep(300)
             else:
