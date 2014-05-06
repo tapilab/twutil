@@ -12,6 +12,14 @@ twapi = TwitterAPI(os.environ.get('TW_CONSUMER_KEY'),
                    os.environ.get('TW_ACCESS_TOKEN_SECRET'))
 
 
+def reinit():
+    global twapi
+    twapi = TwitterAPI(os.environ.get('TW_CONSUMER_KEY'),
+                       os.environ.get('TW_CONSUMER_SECRET'),
+                       os.environ.get('TW_ACCESS_TOKEN'),
+                       os.environ.get('TW_ACCESS_TOKEN_SECRET'))
+
+
 def lookup_ids(handles):
     """ Fetch the twitter ids of each screen_name. """
     ids = set()
