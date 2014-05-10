@@ -5,11 +5,7 @@ from threading import Thread
 import time
 from TwitterAPI import TwitterAPI
 
-
-twapi = TwitterAPI(os.environ.get('TW_CONSUMER_KEY'),
-                   os.environ.get('TW_CONSUMER_SECRET'),
-                   os.environ.get('TW_ACCESS_TOKEN'),
-                   os.environ.get('TW_ACCESS_TOKEN_SECRET'))
+twapi = None
 
 
 def reinit():
@@ -18,6 +14,8 @@ def reinit():
                        os.environ.get('TW_CONSUMER_SECRET'),
                        os.environ.get('TW_ACCESS_TOKEN'),
                        os.environ.get('TW_ACCESS_TOKEN_SECRET'))
+
+reinit()
 
 
 def lookup_ids(handles):
@@ -94,3 +92,58 @@ def track_user_ids(ids):
     """ Return an iterator tweets from users in this id list. """
     results = twapi.request('statuses/filter', {'follow': ','.join(ids)})
     return results.get_iterator()
+
+
+def followers_for_user(screen_name, limit=5e5):
+    id_ = [i for i in lookup_ids([screen_name])]
+    if len(id_) == 1:
+        return followers_for_id(id_, limit)
+    else:
+        sys.stderr.write('cannot find id for user %s' % screen_name)
+
+
+def followers_for_id(id_, limit=5e5):
+    """ Collect up to limit followers for this user id, sleeping to deal with rate limits."""
+    qu = Queue()
+    p = Thread(target=_followers_for_id, args=(qu, id_, limit))
+    p.start()
+    p.join(900)
+    if p.is_alive():
+        sys.stderr.write('no results after 15 minutes for %s. Aborting.' % id_)
+        return []
+    else:
+        return qu.get()
+
+
+def _followers_for_id(qu, id_, limit):
+    # FIXME: DRY from _tweets_for_user
+    cursor = -1
+    followers = []
+    while len(followers) < limit:
+        try:
+            response = twapi.request('followers/ids', {'user_id': id_, 'count': 5000,
+                                                       'cursor': cursor, 'stringify_ids': True})
+            if response.status_code == 34 or response.status_code == 404 or response.status_code == 401:
+                sys.stderr.write('Skipping bad user: %s\n' % response.text)
+                qu.put(followers)
+                return
+            elif response.status_code != 200:  # something went wrong
+                sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % response.text)
+                time.sleep(300)
+            else:
+                result = [r for r in response][0]
+                items = result['ids']
+                if len(items) == 0:
+                    qu.put(followers)
+                    return
+                else:
+                    sys.stderr.write('fetched %d more tweets for %s\n' % (len(items), id_))
+                    followers.extend(items)
+                    if len(followers) >= limit:
+                        qu.put(followers[:limit])
+                        return
+                cursor = result['next_cursor']
+        except Exception as e:
+            sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % e)
+            time.sleep(300)
+    return followers
