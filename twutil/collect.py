@@ -23,7 +23,6 @@ def lookup_ids(handles):
     ids = set()
     for handle_list in [handles[100 * i:100 * i + 100] for i in range(len(handles))]:
         if len(handle_list) > 0:
-            print handle_list
             while True:
                 r = twapi.request('users/lookup', {'screen_name': ','.join(handle_list)})
                 if r.status_code != 200:  # something went wrong
