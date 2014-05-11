@@ -25,7 +25,10 @@ def lookup_ids(handles):
         if len(handle_list) > 0:
             while True:
                 r = twapi.request('users/lookup', {'screen_name': ','.join(handle_list)})
-                if r.status_code != 200:  # something went wrong
+                if r.status_code == 34:
+                    sys.stderr.write('Error: %s\nSkipping unknown name...\n' % r.text)
+                    break
+                elif r.status_code != 200:  # something went wrong
                     sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % r.text)
                     time.sleep(300)
                 else:
