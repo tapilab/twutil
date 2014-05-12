@@ -26,10 +26,10 @@ def lookup_ids(handles):
             while True:
                 r = twapi.request('users/lookup', {'screen_name': ','.join(handle_list)})
                 if r.status_code == 34:
-                    sys.stderr.write('Error: %s\nSkipping unknown name...\n' % r.text)
+                    sys.stderr.write('Error: %s\nSkipping unknown name %s...\n' % (str(handle_list), r.text))
                     break
                 elif r.status_code != 200:  # something went wrong
-                    sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % r.text)
+                    sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (str(handle_list), r.text))
                     time.sleep(300)
                 else:
                     for item in r.get_iterator():
@@ -42,7 +42,7 @@ def tweets_for_id(user_id, limit=1e10):
     """ Collect the most recent 3200 tweets for this user_id, sleeping to deal with rate limits."""
     # Map id to screen_name
     r = twapi.request('users/lookup', {'user_id': user_id})
-    if r.status_code == 200:  # something went wrong
+    if r.status_code == 200:
         sname = [t for t in r][0]['screen_name']
         return tweets_for_user(sname, limit)
     else:
@@ -92,8 +92,7 @@ def _tweets_for_user(qu, screen_name, limit=1e10):
                         return
                 max_id = min(t['id'] for t in response) - 1
         except Exception as e:
-            sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % e)
-            time.sleep(300)
+            sys.stderr.write('Error: %s Skipping...\n' % e)
 
 
 def track_user_ids(ids):
@@ -136,7 +135,7 @@ def _followers_for_id(qu, id_, limit):
                 qu.put(followers)
                 return
             elif response.status_code != 200:  # something went wrong
-                sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % response.text)
+                sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (id_, response.text))
                 time.sleep(300)
             else:
                 result = [r for r in response][0]
@@ -152,6 +151,5 @@ def _followers_for_id(qu, id_, limit):
                         return
                 cursor = result['next_cursor']
         except Exception as e:
-            sys.stderr.write('Error: %s\nSleeping for 5 minutes...\n' % e)
-            time.sleep(300)
+            sys.stderr.write('Error: %s\nskipping...\n' % e)
     return followers
