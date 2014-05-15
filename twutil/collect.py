@@ -108,22 +108,10 @@ def followers_for_user(screen_name, limit=5e5):
         return followers_for_id(id_, limit)
     else:
         sys.stderr.write('cannot find id for user %s' % screen_name)
-
-
-def followers_for_id(id_, limit=5e5):
-    """ Collect up to limit followers for this user id, sleeping to deal with rate limits."""
-    qu = Queue()
-    p = Thread(target=_followers_for_id, args=(qu, id_, limit))
-    p.start()
-    p.join(900)
-    if p.is_alive():
-        sys.stderr.write('no results after 15 minutes for %s. Aborting.' % id_)
         return []
-    else:
-        return qu.get()
 
 
-def _followers_for_id(qu, id_, limit):
+def followers_for_id(id_, limit):
     # FIXME: DRY from _tweets_for_user
     cursor = -1
     followers = []
@@ -131,26 +119,25 @@ def _followers_for_id(qu, id_, limit):
         try:
             response = twapi.request('followers/ids', {'user_id': id_, 'count': 5000,
                                                        'cursor': cursor, 'stringify_ids': True})
-            if response.status_code == 34 or response.status_code == 404 or response.status_code == 401:
-                sys.stderr.write('Skipping bad user: %s\n' % response.text)
-                qu.put(followers)
-                return
-            elif response.status_code != 200:  # something went wrong
+            if response.status_code in [88, 130, 420, 429]:  # rate limit
                 sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (id_, response.text))
                 time.sleep(300)
+            elif response.status_code != 200:
+                sys.stderr.write('Skipping bad user: %s\n' % response.text)
+                return followers
             else:
                 result = [r for r in response][0]
                 items = result['ids']
                 if len(items) == 0:
-                    qu.put(followers)
-                    return
+                    return followers
                 else:
                     sys.stderr.write('fetched %d more tweets for %s\n' % (len(items), id_))
+                    time.sleep(1)
                     followers.extend(items)
                     if len(followers) >= limit:
-                        qu.put(followers[:limit])
-                        return
+                        return followers[:limit]
                 cursor = result['next_cursor']
         except Exception as e:
             sys.stderr.write('Error: %s\nskipping...\n' % e)
+            return followers
     return followers
