@@ -3,6 +3,12 @@
 History
 -------
 
+0.1.7 (2014-05-15)
+++++++++++++++++++
+* Fetch followers
+* Enhanced error handling
+* Bug fixes
+
 0.1.6 (2014-05-02)
 ++++++++++++++++++
 * Update versions
