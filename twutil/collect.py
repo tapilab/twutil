@@ -102,7 +102,7 @@ def track_user_ids(ids):
     return results.get_iterator()
 
 
-def followers_for_user(screen_name, limit=5e5):
+def followers_for_user(screen_name, limit=1e10):
     id_ = [i for i in lookup_ids([screen_name])]
     if len(id_) == 1:
         return followers_for_id(id_, limit)
@@ -111,7 +111,7 @@ def followers_for_user(screen_name, limit=5e5):
         return []
 
 
-def followers_for_id(id_, limit):
+def followers_for_id(id_, limit=1e10):
     # FIXME: DRY from _tweets_for_user
     cursor = -1
     followers = []
