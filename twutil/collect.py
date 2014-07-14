@@ -18,6 +18,28 @@ def reinit():
 reinit()
 
 
+def lookup_handles(ids):
+    """ Fetch the twitter screen_names of each id. """
+    names = set()
+    for id_list in [ids[100 * i:100 * i + 100] for i in range(len(ids))]:
+        print id_list
+        if len(id_list) > 0:
+            while True:
+                r = twapi.request('users/lookup', {'user_id': ','.join([str(i) for i in id_list])})
+                if r.status_code in [88, 130, 420, 429]:  # rate limit
+                    sys.stderr.write('Sleeping off rate limit for %s: %s\n' % (str(id_list), r.text))
+                    time.sleep(300)
+                elif r.status_code == 200:
+                    for item in r.get_iterator():
+                        names.add(item['screen_name'])
+                    break
+                else:
+                    sys.stderr.write('Error: %s\nSkipping %s...\n' % (str(id_list), r.text))
+                    break
+
+    return names
+
+
 def lookup_ids(handles):
     """ Fetch the twitter ids of each screen_name. """
     ids = set()
