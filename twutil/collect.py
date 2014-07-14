@@ -22,7 +22,6 @@ def lookup_handles(ids):
     """ Fetch the twitter screen_names of each id. """
     names = set()
     for id_list in [ids[100 * i:100 * i + 100] for i in range(len(ids))]:
-        print id_list
         if len(id_list) > 0:
             while True:
                 r = twapi.request('users/lookup', {'user_id': ','.join([str(i) for i in id_list])})
