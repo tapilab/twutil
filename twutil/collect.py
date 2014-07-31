@@ -30,7 +30,7 @@ def lookup_handles(ids):
                     time.sleep(300)
                 elif r.status_code == 200:
                     for item in r.get_iterator():
-                        names.add(item['screen_name'])
+                        names.add((item['screen_name'], item['id_str']))
                     break
                 else:
                     sys.stderr.write('Error: %s\nSkipping %s...\n' % (str(id_list), r.text))
