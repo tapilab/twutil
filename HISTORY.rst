@@ -3,6 +3,13 @@
 History
 -------
 
+0.1.8 (2014-12-08)
+++++++++++++++++++
+* Get members of a Twitter list
+* Improvements to tokenizer.
+* Lookup screen names in bulk.
+
+
 0.1.7 (2014-05-15)
 ++++++++++++++++++
 * Fetch followers

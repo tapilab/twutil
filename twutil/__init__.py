@@ -3,7 +3,7 @@
 
 __author__ = 'Aron Culotta'
 __email__ = 'aronwc@gmail.com'
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 
 from .data import Tweet
