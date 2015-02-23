@@ -154,6 +154,47 @@ def track_user_ids(ids):
     return results.get_iterator()
 
 
+def friends_for_id(id_, limit=1e10):
+    # FIXME: DRY from _tweets_for_user
+    cursor = -1
+    friends = []
+    while len(friends) < limit:
+        try:
+            response = twapi.request('friends/ids', {'user_id': id_, 'count': 5000,
+                                                     'cursor': cursor, 'stringify_ids': True})
+            if response.status_code in [88, 130, 420, 429]:  # rate limit
+                sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (id_, response.text))
+                time.sleep(300)
+            elif response.status_code != 200:
+                sys.stderr.write('Skipping bad user: %s\n' % response.text)
+                return friends
+            else:
+                result = [r for r in response][0]
+                items = result['ids']
+                if len(items) == 0:
+                    return friends
+                else:
+                    sys.stderr.write('fetched %d more friends for %s\n' % (len(items), id_))
+                    time.sleep(1)
+                    friends.extend(items)
+                    if len(friends) >= limit:
+                        return friends[:limit]
+                cursor = result['next_cursor']
+        except Exception as e:
+            sys.stderr.write('Error: %s\nskipping...\n' % e)
+            return friends
+    return friends
+
+
+def friends_for_user(screen_name, limit=5000):
+    id_ = [i for i in lookup_ids([screen_name])]
+    if len(id_) == 1:
+        return friends_for_id(id_, limit)
+    else:
+        sys.stderr.write('cannot find id for user %s' % screen_name)
+        return []
+
+
 def followers_for_user(screen_name, limit=1e10):
     id_ = [i for i in lookup_ids([screen_name])]
     if len(id_) == 1:
