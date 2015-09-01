@@ -1,6 +1,6 @@
 import json
 import os
-from Queue import Queue
+from queue import Queue
 import sys
 from threading import Thread
 import time
@@ -35,7 +35,7 @@ def list_members(slug, owner_screen_name, limit=1e10):
         else:
             items = [r['screen_name'] for r in response if 'screen_name' in r]
             return items
-    except Exception, e:
+    except Exception as e:
         sys.stderr.write('Error: %s\nskipping...\n' % e)
         return members
     return members

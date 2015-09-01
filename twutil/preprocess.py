@@ -1,6 +1,4 @@
 from collections import defaultdict
-from data import Tweet
-import data
 import json
 import re
 import string
