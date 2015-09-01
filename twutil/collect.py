@@ -1,8 +1,10 @@
+import json
 import os
 from Queue import Queue
 import sys
 from threading import Thread
 import time
+import traceback
 from TwitterAPI import TwitterAPI
 
 twapi = None
@@ -22,30 +24,20 @@ def list_members(slug, owner_screen_name, limit=1e10):
     """See https://dev.twitter.com/rest/reference/get/lists/members"""
     cursor = -1
     members = []
-    while True:
-        try:
-            response = twapi.request('lists/members', {'slug': slug, 'owner_screen_name': owner_screen_name, 'cursor': cursor})
-            if response.status_code in [88, 130, 420, 429]:  # rate limit
-                sys.stderr.write('Error for %s/%s: %s\nSleeping for 5 minutes...\n' % (owner_screen_name, slug, response.text))
-                time.sleep(300)
-            elif response.status_code != 200:
-                sys.stderr.write('Skipping bad query: %s\n' % response.text)
-                return members
-            else:
-                result = [r for r in response][0]
-                items = [r['screen_name'] for r in result['users']]
-                if len(items) == 0:
-                    return members
-                else:
-                    sys.stderr.write('fetched %d more members for %s/%s\n' % (len(items), owner_screen_name, slug))
-                    time.sleep(1)
-                    members.extend(items)
-                    if len(members) >= limit:
-                        return members[:limit]
-                    cursor = result['next_cursor']
-        except Exception as e:
-            sys.stderr.write('Error: %s\nskipping...\n' % e)
+    try:
+        response = twapi.request('lists/members', {'slug': slug, 'owner_screen_name': owner_screen_name, 'cursor': cursor, 'count': 5000})
+        if response.status_code in [88, 130, 420, 429]:  # rate limit
+            sys.stderr.write('Error for %s/%s: %s\nSleeping for 5 minutes...\n' % (owner_screen_name, slug, response.text))
+            time.sleep(301)
+        elif response.status_code != 200:
+            sys.stderr.write('Skipping bad query: %s\n' % response.text)
             return members
+        else:
+            items = [r['screen_name'] for r in response if 'screen_name' in r]
+            return items
+    except Exception, e:
+        sys.stderr.write('Error: %s\nskipping...\n' % e)
+        return members
     return members
 
 
@@ -58,7 +50,7 @@ def lookup_handles(ids):
                 r = twapi.request('users/lookup', {'user_id': ','.join([str(i) for i in id_list])})
                 if r.status_code in [88, 130, 420, 429]:  # rate limit
                     sys.stderr.write('Sleeping off rate limit for %s: %s\n' % (str(id_list), r.text))
-                    time.sleep(300)
+                    time.sleep(301)
                 elif r.status_code == 200:
                     for item in r.get_iterator():
                         names.add((item['screen_name'], item['id_str']))
@@ -107,7 +99,7 @@ def tweets_for_user(screen_name, limit=1e10):
     qu = Queue()
     p = Thread(target=_tweets_for_user, args=(qu, screen_name, limit))
     p.start()
-    p.join(900)
+    p.join(910)
     if p.is_alive():
         sys.stderr.write('no results after 15 minutes for %s. Aborting.' % screen_name)
         return []
@@ -204,27 +196,36 @@ def followers_for_user(screen_name, limit=1e10):
         return []
 
 
-def followers_for_id(id_, limit=1e10):
+def get_followers(id_=None, screen_name=None, limit=1e10):
+    """ Either id_ or screen_name must not be None. """
     # FIXME: DRY from _tweets_for_user
+    if not (id_ or screen_name):
+        raise Exception("either id_ or screen_name must not be None")
+    if id_:
+        key = 'user_id'
+        val = id_
+    else:
+        key = 'screen_name'
+        val = screen_name
     cursor = -1
     followers = []
     while len(followers) < limit:
         try:
-            response = twapi.request('followers/ids', {'user_id': id_, 'count': 5000,
+            response = twapi.request('followers/ids', {key: val, 'count': 5000,
                                                        'cursor': cursor, 'stringify_ids': True})
             if response.status_code in [88, 130, 420, 429]:  # rate limit
-                sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (id_, response.text))
+                sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (val, response.text))
                 time.sleep(300)
             elif response.status_code != 200:
                 sys.stderr.write('Skipping bad user: %s\n' % response.text)
                 return followers
             else:
-                result = [r for r in response][0]
-                items = result['ids']
+                result = json.loads(response.text)
+                items = [r for r in response]
                 if len(items) == 0:
                     return followers
                 else:
-                    sys.stderr.write('fetched %d more followers for %s\n' % (len(items), id_))
+                    sys.stderr.write('fetched %d more followers for %s\n' % (len(items), val))
                     time.sleep(1)
                     followers.extend(items)
                     if len(followers) >= limit:
@@ -232,5 +233,14 @@ def followers_for_id(id_, limit=1e10):
                 cursor = result['next_cursor']
         except Exception as e:
             sys.stderr.write('Error: %s\nskipping...\n' % e)
+            sys.stderr.write(traceback.format_exc())
             return followers
     return followers
+
+
+def followers_for_id(id_, limit=1e10):
+    return get_followers(id_=id_, limit=limit)
+
+
+def followers_for_screen_name(screen_name, limit=1e10):
+    return get_followers(screen_name=screen_name, limit=limit)
