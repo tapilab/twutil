@@ -19,7 +19,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='twutil',
-    version='0.1.8',
+    version='0.1.9',
     description='Utilities for manipulating tweets',
     long_description=readme + '\n\n' + history,
     author='Aron Culotta',

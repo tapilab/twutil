@@ -3,6 +3,11 @@
 History
 -------
 
+0.1.9 (2014-12-08)
+++++++++++++++++++
+* Convert to Python3
+* Support to collect friends
+
 0.1.8 (2014-12-08)
 ++++++++++++++++++
 * Get members of a Twitter list

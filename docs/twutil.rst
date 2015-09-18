@@ -1,15 +1,10 @@
-twutil Package
+twutil package
 ==============
 
-:mod:`twutil` Package
----------------------
+Submodules
+----------
 
-.. automodule:: twutil.__init__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`collect` Module
+twutil.collect module
 ---------------------
 
 .. automodule:: twutil.collect
@@ -17,7 +12,7 @@ twutil Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`data` Module
+twutil.data module
 ------------------
 
 .. automodule:: twutil.data
@@ -25,7 +20,7 @@ twutil Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`preprocess` Module
+twutil.preprocess module
 ------------------------
 
 .. automodule:: twutil.preprocess
@@ -33,7 +28,7 @@ twutil Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`twutil` Module
+twutil.twutil module
 --------------------
 
 .. automodule:: twutil.twutil
@@ -41,3 +36,11 @@ twutil Package
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: twutil
+    :members:
+    :undoc-members:
+    :show-inheritance:
