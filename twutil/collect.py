@@ -1,11 +1,15 @@
 import json
 import os
-from queue import Queue
 import sys
 from threading import Thread
 import time
 import traceback
 from TwitterAPI import TwitterAPI
+
+try:
+    from Queue import Queue
+except:
+    from queue import Queue
 
 twapi = None
 
