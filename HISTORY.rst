@@ -3,6 +3,11 @@
 History
 -------
 
+0.2.0 (2015-10-06)
+++++++++++++++++++
+* Backward compatibility for python2
+
+
 0.1.9 (2014-12-08)
 ++++++++++++++++++
 * Convert to Python3
