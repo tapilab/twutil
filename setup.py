@@ -10,6 +10,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
+# read requirements
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 if sys.argv[-1] == 'publish':
     os.system('python setup.py sdist upload')
     sys.exit()
@@ -19,7 +23,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='twutil',
-    version='0.2.0',
+    version='0.2.1',
     description='Utilities for manipulating tweets',
     long_description=readme + '\n\n' + history,
     author='Aron Culotta',
@@ -30,8 +34,7 @@ setup(
     ],
     package_dir={'twutil': 'twutil'},
     include_package_data=True,
-    install_requires=[
-    ],
+    install_requires=requirements,
     license="BSD",
     zip_safe=False,
     keywords='twutil',
