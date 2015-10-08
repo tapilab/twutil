@@ -2,6 +2,10 @@
 
 History
 -------
+0.2.2 (2015-10-08)
+++++++++++++++++++
+* add get_friends
+
 0.2.1 (2015-10-06)
 ++++++++++++++++++
 * Properly specify requirements.

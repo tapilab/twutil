@@ -165,8 +165,8 @@ def friends_for_id(id_, limit=1e10):
                 sys.stderr.write('Skipping bad user: %s\n' % response.text)
                 return friends
             else:
-                result = [r for r in response][0]
-                items = result['ids']
+                response = json.loads(response.text)
+                items = [r for r in response['ids']]
                 if len(items) == 0:
                     return friends
                 else:
@@ -175,9 +175,10 @@ def friends_for_id(id_, limit=1e10):
                     friends.extend(items)
                     if len(friends) >= limit:
                         return friends[:limit]
-                cursor = result['next_cursor']
+                cursor = response['next_cursor']
         except Exception as e:
             sys.stderr.write('Error: %s\nskipping...\n' % e)
+            sys.stderr.write(traceback.format_exc())
             return friends
     return friends
 
@@ -189,6 +190,49 @@ def friends_for_user(screen_name, limit=5000):
     else:
         sys.stderr.write('cannot find id for user %s' % screen_name)
         return []
+
+
+def get_friends(id_=None, screen_name=None, limit=1e10):
+    """ Either id_ or screen_name must not be None. """
+    # FIXME: DRY from _tweets_for_user
+    if not (id_ or screen_name):
+        raise Exception("either id_ or screen_name must not be None")
+    if id_:
+        key = 'user_id'
+        val = id_
+    else:
+        key = 'screen_name'
+        val = screen_name
+
+    cursor = -1
+    friends = []
+    while len(friends) < limit:
+        try:
+            response = twapi.request('friends/ids', {key: val, 'count': 5000,
+                                                     'cursor': cursor, 'stringify_ids': True})
+            if response.status_code in [88, 130, 420, 429]:  # rate limit
+                sys.stderr.write('Error for %s: %s\nSleeping for 5 minutes...\n' % (val, response.text))
+                time.sleep(300)
+            elif response.status_code != 200:
+                sys.stderr.write('Skipping bad user: %s\n' % response.text)
+                return friends
+            else:
+                response = json.loads(response.text)
+                items = [r for r in response['ids']]
+                if len(items) == 0:
+                    return friends
+                else:
+                    sys.stderr.write('fetched %d more friends for %s\n' % (len(items), val))
+                    time.sleep(1)
+                    friends.extend(items)
+                    if len(friends) >= limit:
+                        return friends[:limit]
+                cursor = response['next_cursor']
+        except Exception as e:
+            sys.stderr.write('Error: %s\nskipping...\n' % e)
+            sys.stderr.write(traceback.format_exc())
+            return friends
+    return friends
 
 
 def followers_for_user(screen_name, limit=1e10):
