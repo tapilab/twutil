@@ -5,7 +5,7 @@ class Tweet(object):
     """
     >>> tweet = Tweet(json.loads(test_tweet))
     >>> tweet.js['user']['name']
-    u'Ellen DeGeneres'
+    'Ellen DeGeneres'
     """
 
     def __init__(self, js):
@@ -21,7 +21,7 @@ def jsons2tweets(jsons):
     >>> len(tweets)
     2
     >>> tweets[0].js['user']['name']
-    u'Ellen DeGeneres'
+    'Ellen DeGeneres'
     """
     for js in jsons:
         yield Tweet(json.loads(js))

@@ -3,6 +3,10 @@ import json
 import re
 import string
 
+from . import data
+
+from .data import Tweet
+
 
 punc_re = '[' + re.escape(string.punctuation) + ']'
 
@@ -10,8 +14,8 @@ punc_re = '[' + re.escape(string.punctuation) + ']'
 class Tokenizer(object):
     """
     >>> t = Tokenizer()
-    >>> t.tokenize(Tweet(json.loads(data.test_tweet)))
-    {'text': [u'if', u'only', u"bradley's", u'arm', u'was', u'longer', u'.', u'best', u'photo', u'ever', u'.', u'HASHTAG_oscars', u'THIS_IS_A_URL'], 'user.name': [u'ellen', u'degeneres']}
+    >>> sorted(list(t.tokenize(Tweet(json.loads(data.test_tweet))).items()))
+    [('text', ['if', 'only', "bradley's", 'arm', 'was', 'longer', '.', 'best', 'photo', 'ever', '.', 'HASHTAG_oscars', 'THIS_IS_A_URL']), ('user.name', ['ellen', 'degeneres'])]
     """
     def __init__(self, fields=['text', 'user.name'], ngrams=1, lc=True, collapse_hashtags=False,
                  collapse_mentions=True, collapse_urls=True, limit_repeats=True, retain_punc_toks=True,
@@ -79,4 +83,15 @@ class Tokenizer(object):
             else:
                 value = tw.js[field]
             toks[field].extend(self.do_tokenize(value))
-        return dict([(f, v) for f, v in toks.iteritems()])
+        return dict([(f, v) for f, v in toks.items()])
+
+    def tokenize_fielded(self, tw):
+        """ Tokenize tweet and prepend field id before each token.
+        >>> t = Tokenizer(fields=['text', 'user.name', 'user.location'])
+        >>> list(t.tokenize_fielded(Tweet(json.loads(data.test_tweet))))
+        ['text___if', 'text___only', "text___bradley's", 'text___arm', 'text___was', 'text___longer', 'text___.', 'text___best', 'text___photo', 'text___ever', 'text___.', 'text___HASHTAG_oscars', 'text___THIS_IS_A_URL', 'user.name___ellen', 'user.name___degeneres']
+        """
+        toks = self.tokenize(tw)
+        for field, tokens in sorted(toks.items()):
+            for tok in tokens:
+                yield '%s___%s' % (field, tok)

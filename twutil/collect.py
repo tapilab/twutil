@@ -95,7 +95,7 @@ def tweets_for_id(user_id, limit=1e10):
         sname = [t for t in r][0]['screen_name']
         return tweets_for_user(sname, limit)
     else:
-        sys.stderr.write('error:' % r.text)
+        sys.stderr.write('error: %s' % str(r))
 
 
 def tweets_for_user(screen_name, limit=1e10):
