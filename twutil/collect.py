@@ -149,6 +149,17 @@ def track_user_ids(ids):
     results = twapi.request('statuses/filter', {'follow': ','.join(ids)})
     return results.get_iterator()
 
+def track_locations(locations):
+    """ Return an iterator tweets from users in these locations.
+    See https://dev.twitter.com/streaming/overview/request-parameters#locations
+    Params:
+        locations...list of bounding box locations of the form:
+        southwest_longitude, southwest_latitude, northeast_longitude, northeast_latitude, ...
+    """
+    if len(locations) % 4 != 0:
+        raise Exception('length of bounding box list should be a multiple of four')
+    results = twapi.request('statuses/filter', {'locations': ','.join('%f' % l for l in locations)})
+    return results.get_iterator()
 
 def friends_for_id(id_, limit=1e10):
     # FIXME: DRY from _tweets_for_user
