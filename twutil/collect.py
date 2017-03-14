@@ -16,10 +16,16 @@ twapi = None
 
 def reinit():
     global twapi
-    twapi = TwitterAPI(os.environ.get('TW_CONSUMER_KEY'),
-                       os.environ.get('TW_CONSUMER_SECRET'),
-                       os.environ.get('TW_ACCESS_TOKEN'),
-                       os.environ.get('TW_ACCESS_TOKEN_SECRET'))
+    if ('TW_CONSUMER_KEY' not in os.environ or
+        'TW_CONSUMER_SECRET' not in os.environ or
+        'TW_ACCESS_TOKEN' not in os.environ or
+        'TW_ACCESS_TOKEN_SECRET' not in os.environ):
+        sys.stderr.write('Twitter OAUTH environmental variables not set. Data collection will not work.')
+    else:
+        twapi = TwitterAPI(os.environ.get('TW_CONSUMER_KEY'),
+                           os.environ.get('TW_CONSUMER_SECRET'),
+                           os.environ.get('TW_ACCESS_TOKEN'),
+                           os.environ.get('TW_ACCESS_TOKEN_SECRET'))
 
 reinit()
 
