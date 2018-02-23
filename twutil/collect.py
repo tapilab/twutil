@@ -124,9 +124,9 @@ def _tweets_for_user(qu, screen_name, limit=1e10):
         # TODO: Have to kill threads after some time; otherwise, we make too many...
         try:
             if max_id:
-                response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200, 'max_id': max_id})
+                response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200, 'max_id': max_id, 'trim_user': 1})
             else:
-                response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200})
+                response = twapi.request('statuses/user_timeline', {'screen_name': screen_name, 'count': 200, 'trim_user': 1})
             if response.status_code == 34 or response.status_code == 404 or response.status_code == 401:
                 sys.stderr.write('Skipping bad user: %s\n' % response.text)
                 qu.put(tweets)
